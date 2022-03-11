@@ -25,7 +25,17 @@ const person = new Person({
   number: process.argv[4],
 });
 
+if ((process.argv.length = 3)) {
+  console.log("Phonebook: ");
+  Person.find({}).then((result) => {
+    result.forEach((person) => {
+      console.log(`${person.name} ${person.number}`);
+    });
+    process.exit(1);
+  });
+}
+
 person.save().then((result) => {
-  console.log("person saved!");
+  console.log("Added", process.argv[3], process.argv[4], "to phonebook");
   mongoose.connection.close();
 });
