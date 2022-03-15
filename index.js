@@ -58,34 +58,50 @@ app.delete("/api/persons/:id", (request, response, next) => {
 app.post("/api/persons", (request, response, next) => {
   const body = request.body;
 
-  if (body.number === undefined) {
+  if (!body.name) {
     return response.status(400).json({
-      error: "Number is missing",
+      error: "name missing",
     });
   }
 
-  const person = new Person({
-    name: body.name,
-    number: body.number,
-  });
+  if (!body.number) {
+    return response.status(400).json({
+      error: "number missing",
+    });
+  }
 
-  person
-    .save()
-    .then((savedPerson) => {
-      response.json(savedPerson);
-    })
-    .catch((error) => next(error));
+  Person.find({}).then((persons) => {
+    console.log("persons: ", persons);
+
+    if (persons.some((person) => person.name === body.name)) {
+      console.log("name must be unique");
+      return response.status(400).json({
+        error: "name must be unique",
+      });
+    }
+
+    let person = new Person({
+      name: body.name,
+      number: body.number,
+    });
+
+    person
+      .save()
+      .then((savedPerson) => {
+        response.json(savedPerson);
+      })
+      .catch((error) => next(error));
+  });
 });
 
 app.put("/api/persons/:id", (request, response, next) => {
-  const body = request.body;
+  const { name, number } = request.body;
 
-  const person = {
-    name: body.name,
-    number: body.number,
-  };
-
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  Person.findByIdAndUpdate(
+    request.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: true }
+  )
     .then((updatePerson) => {
       response.json(updatePerson);
     })
